@@ -2,6 +2,12 @@
 
 This repository contains scripts (convertible into console apps) that can be used to perform application security scans.
 
+## Download
+
+Compiled binaries for Windows can be downloaded from the link below.
+
+* [Syhunt Community](http://www.syhunt.com/en/?n=Syhunt.DownloadHybridCE) (included as part of Syhunt Community)
+
 ## License & Credits
 
 Copyright (c) 2016 [Syhunt](http://www.syhunt.com/)
