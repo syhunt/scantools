@@ -4,8 +4,9 @@ This repository contains scripts (convertible into console apps) that can be use
 
 ## Download
 
-Compiled binaries for Windows can be downloaded from the link below.
+Compiled binaries for Windows can be downloaded from the links below.
 
+* [Syhunt ScanTools](http://www.syhunt.com/en/?n=Tools.DownloadScanTools) (Portable Edition)
 * [Syhunt Community](http://www.syhunt.com/en/?n=Syhunt.DownloadHybridCE) (included as part of Syhunt Community)
 
 ## License & Credits
