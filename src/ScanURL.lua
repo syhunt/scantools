@@ -120,6 +120,12 @@ function printvulndetails(v)
   if v.lines ~= '' then
     cs.printgreen('   Affected Line(s): '..v.lines)
   end
+  if v.postdata ~= '' then
+    cs.printgreen('   POST Param(s): '..v.postdata)
+  end
+  if v.matchedsig ~= '' then
+    cs.printgreen('   Matched Sig: '..v.matchedsig)
+  end
   cs.printgreen('   Status Code: '..tostring(v.statuscode))
 end
 
