@@ -26,7 +26,9 @@ Examples:
     xss                 Cross-Site Scripting; Gray Box
     fileinc   (or finc) File Inclusion; Gray Box
     fileold   (or fold) Old & Backup Files; Gray Box
+    malscan   (or mal)  Malware Content; Gray Box
     unvredir  (or ur)   Unvalidated Redirects; Gray Box
+    passive   (or pas)  Passive Scan; Black box
     spider    (or spd)  Spider Only
     complete  (or cmp)  Complete Scan; Gray Box
     compnodos (or cnd)  Complete Scan, No DoS; Gray Box
@@ -77,8 +79,13 @@ function printscanresult(hs)
 	  cs.printred('Found '..hs.vulncount..' vulnerabilities')
 	end
   else
-	cs.printgreen('SECURE.')
-	cs.printgreen('No vulnerabilities found.')
+    if hs.aborted == false then
+	  cs.printgreen('SECURE.')
+	  cs.printgreen('No vulnerabilities found.')
+	else
+	  cs.printred('UNDETERMINED.')
+	  cs.printred('Scan aborted.')
+	end
   end
   
   if hs.warnings ~= '' then
@@ -108,25 +115,27 @@ end
 
 function printvulndetails(v)
   local loc = v.location
+  local ps = function(desc,key)
+      if key ~= '' then
+        cs.printgreen(string.format('   %s: %s',desc,key))
+      end
+    end
   if v.locationsrc ~= '' then
     -- Replace by source code location
     loc = v.locationsrc
   end
   cs.printgreen(string.format('Found: %s at %s',v.checkname,loc))
-  cs.printgreen('   Risk: '..v.risk)
-  if v.params ~= '' then
-    cs.printgreen('   Affected Param(s): '..v.params)
-  end
-  if v.lines ~= '' then
-    cs.printgreen('   Affected Line(s): '..v.lines)
-  end
-  if v.postdata ~= '' then
-    cs.printgreen('   POST Param(s): '..v.postdata)
-  end
-  if v.matchedsig ~= '' then
-    cs.printgreen('   Matched Sig: '..v.matchedsig)
-  end
-  cs.printgreen('   Status Code: '..tostring(v.statuscode))
+  ps('References (CVE)',v.ref_cve)
+  ps('References (CWE)',v.ref_cwe)
+  ps('References (OSVDB)',v.ref_osvdb)
+  ps('Risk',v.risk)
+  ps('Affected Browsers(s)',v.browsers)
+  ps('Affected Param(s)',v.params)
+  ps('Affected Line(s)',v.lines)
+  ps('POST Param(s)',v.postdata)
+  ps('Injected Data',v.injecteddata)
+  ps('Matched Sig',v.matchedsig)
+  ps('Status Code',v.statuscode)
 end
 
 function requestdone(r)

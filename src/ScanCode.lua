@@ -23,6 +23,7 @@ Examples:
     faultinj            Fault Injection
     sqlinj              SQL & NoSQL Injection
     xss                 Cross-Site Scripting
+    malscan             Malware Content
     unvredir            Unvalidated Redirects
 
 -gr                 Generates a report after scanning
