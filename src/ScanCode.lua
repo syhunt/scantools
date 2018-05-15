@@ -62,7 +62,7 @@ function printscanresult(code)
 	  cs.printred('The following scripts are vulnerable:')
 	  cs.printred(code.affectedscripts)
   else
-    if ctk.utils.getargs() ~= '' then
+    if ctk.utils.getarg() ~= '' then
 		  cs.printgreen('SECURE.')
 	  end
   end
