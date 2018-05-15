@@ -35,7 +35,6 @@ Examples:
 
 Other parameters:
 -noifa              Disables input filtering analysis
--wscgi              Enables Python WSCGI checks
 -about              Displays information on the current version of Syhunt
 -help (or /?)       Displays this list
 
@@ -107,7 +106,6 @@ function startscan()
   code.huntmethod = arg('hm','normal')
   code.debug = hasarg('-dbg')
   code:prefs_set('syhunt.code.checks.inflt',not hasarg('-noifa'))
-  code:prefs_set('syhunt.code.checks.pywsgi',hasarg('-wsgi'))
   code:prefs_update()
   
   if ctk.file.exists(target) then
