@@ -31,7 +31,7 @@ Examples:
 [session name].html)
     Available Formats: html, pdf, doc, rtf, txt, xml
 -rtpl:[name]        Sets the report template (default: Standard)
-    Available Templates: Standard, Compliance, Complete
+    Available Templates: Standard, Comparison, Compliance, Complete
 
 Other parameters:
 -noifa              Disables input filtering analysis
