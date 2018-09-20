@@ -20,7 +20,9 @@ Examples:
 -hm:[method name]   Hunt Method (if not used "normal" will be assigned)
     Available Methods:
     normal              All Vulnerabilities (Standard Scan)
+    top5                Top 5; OWASP Top 5
     faultinj            Fault Injection
+    fileinc             File Inclusion
     sqlinj              SQL & NoSQL Injection
     xss                 Cross-Site Scripting
     malscan             Malware Content
