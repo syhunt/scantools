@@ -29,6 +29,7 @@ Examples:
     unvredir            Unvalidated Redirects
 
 -gr                 Generates a report after scanning
+-or                 Opens report after generation
 -rout:[filename]    Sets the report output filename and format (default: Report_
 [session name].html)
     Available Formats: html, pdf, doc, rtf, txt, xml
@@ -84,6 +85,9 @@ function generatereport(sessionname)
   }
   if repmaker:genreport(repprefs) == true then
     print('Saved to '..outfilename..'.')
+    if hasarg('-or') then
+      ctk.file.exec(outfilename)
+    end
   else
     cs.printred('There was a problem generating '..outfilename)
   end
