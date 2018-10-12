@@ -18,7 +18,7 @@ Examples:
     scanlog "c:\web logs\access.log"
     
 -fmt:[format name]  Log Format (if not used, "auto" will be assigned)
-    Available Formats: auto, common, apache, iis, ncsa, pws, sambar
+    Available Formats: auto, common, apache, iis, ncsa, nginx, pws, sambar
     
 -sn:[session name]  (if not used, "[unixtime]" will be assigned)
 
