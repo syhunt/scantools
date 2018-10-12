@@ -54,7 +54,11 @@ function addattack(t)
   end
   printinfo('Attacker IP',t.ip)
   printinfo('Attack Description',t.description)
-  printinfo('Attack Origin',ipcountry.country.names.en)
+  if ipcountry ~= nil then
+    printinfo('Attack Origin',ipcountry.country.names.en)
+  else
+    printinfo('Attack Origin','N/A')
+  end
   if t.tooltitle ~= '' then
     printinfo('Tool',t.tooltitle)
   end
