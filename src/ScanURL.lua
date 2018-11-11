@@ -51,6 +51,7 @@ Examples:
     Available Formats: html, pdf, doc, rtf, txt, xml
 -rtpl:[name]        Sets the report template (default: Standard)
     Available Templates: Standard, Comparison, Compliance, Complete
+-nv                 Turn off verbose. Error and basic info still gets printed
     
 Other parameters:
 -mnl:[n]            Sets the maximum number of links per server (default: 10000)
@@ -158,9 +159,12 @@ function startscan()
   print('________________________________________________________________\n')
   local hs = symini.hybrid:new()
   hs.sessionname = arg('sn',symini.getsessionname())
-  hs.onlogmessage = function(s) print(s) end
-  hs.onvulnfound = printvulndetails
-  hs.onrequestdone = requestdone
+  
+  if hasarg('-nv') == false then
+    hs.onlogmessage = function(s) print(s) end
+    hs.onvulnfound = printvulndetails
+    hs.onrequestdone = requestdone
+  end
   
   -- Set the scanner preferences based on switches provided
   hs.debug = hasarg('-dbg')

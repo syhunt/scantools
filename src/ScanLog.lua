@@ -27,6 +27,8 @@ Examples:
     normal              All Attack Types (Standard Scan)
     reconstruct         Session Reconstruction (use with -sip)
                           (isolates all requests associated with an IP)
+                          
+-nv                 Turn off verbose. Error and basic info still gets printed
 
 Other parameters:
 -sip:[ip]           Target source IP address
@@ -95,8 +97,11 @@ end
 function startscan()
   print('________________________________________________________________\n')
   i = symini.insight:new()
-  i.onlogmessage = function(s) print(s) end
-  i.onattackfound = addattack
+  
+  if hasarg('-nv') == false then
+    i.onlogmessage = function(s) print(s) end
+    i.onattackfound = addattack
+  end
 
   -- Set the scanner preferences based on switches provided
   i.debug = hasarg('-dbg')

@@ -18,6 +18,8 @@ Examples:
     
 -sn:[session name]  (if not used, "[unixtime]" will be assigned)
 
+-nv                 Turn off verbose. Error and basic info still gets printed
+
 Other parameters:
 -noid               Enables the Paranoid scan mode
                       (recommended only for advanced users)
@@ -50,8 +52,11 @@ end
 function startscan()
   print('________________________________________________________________\n')
   local hd = symini.hardener:new()
-  hd.onlogmessage = function(s) print(s) end
-  hd.onrecom = printrecom
+  
+  if hasarg('-nv') == false then
+    hd.onlogmessage = function(s) print(s) end
+    hd.onrecom = printrecom
+  end
 
   -- Set the scanner preferences based on switches provided
   hd.sessionname = arg('sn',symini.getsessionname())

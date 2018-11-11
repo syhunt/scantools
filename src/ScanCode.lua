@@ -35,6 +35,7 @@ Examples:
     Available Formats: html, pdf, doc, rtf, txt, xml
 -rtpl:[name]        Sets the report template (default: Standard)
     Available Templates: Standard, Comparison, Compliance, Complete
+-nv                 Turn off verbose. Error and basic info still gets printed
 
 Other parameters:
 -noifa              Disables input filtering analysis
@@ -98,8 +99,11 @@ function startscan()
   print('________________________________________________________________\n')
   local code = symini.code:new()
   code.sessionname = arg('sn',symini.getsessionname())
-  code.onlogmessage = function(s) print(s) end
-  code.onvulnfound = reportvuln
+  
+  if hasarg('-nv') == false then
+    code.onlogmessage = function(s) print(s) end
+    code.onvulnfound = reportvuln
+  end
   
   -- Expecting a target like: scancode c:\source\www\
   local target = arg(1)
