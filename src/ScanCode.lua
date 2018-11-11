@@ -78,8 +78,9 @@ function generatereport(sessionname)
   print('Generating report...')
   require "Repmaker"
   local outfilename = symini.info.sessionsdir..'Report_'..sessionname..'.html'
+  outfilename = arg('rout',outfilename)
   local repprefs = {
-    outfilename = arg('rout',outfilename),
+    outfilename = outfilename,
     sessionname = sessionname,
     template = arg('rtpl','Standard')
   }
