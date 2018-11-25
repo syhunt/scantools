@@ -19,7 +19,7 @@ Examples:
 -sn:[session name]  (if not used, "[unixtime]" will be assigned)
 -hm:[method name]   Hunt Method (if not used "normal" will be assigned)
     Available Methods:
-    normal              All Vulnerabilities (Standard Scan)
+    normal              Standard Scan
     top5                Top 5; OWASP Top 5
     faultinj            Fault Injection
     fileinc             File Inclusion
@@ -27,6 +27,8 @@ Examples:
     xss                 Cross-Site Scripting
     malscan             Malware Content
     unvredir            Unvalidated Redirects
+    complete            Complete Scan
+    comppnoid           Complete Scan, Paranoid
 
 -gr                 Generates a report after scanning
 -or                 Opens report after generation
