@@ -10,11 +10,13 @@ function printhelp()
   cs.printwhite('Type scancode -about for more information.')
   print('________________________________________________________________\n')
   print([[
-Usage: scancode [target dir or file] [optional params]
+Usage: scancode [target dir, file or url] [optional params]
 Examples: 
     scancode c:\source\www\
     scancode c:\source\www\file.php
     scancode "c:\source code\www\"
+    scancode git://sub.domain.com/repo.git
+    scancode https://github.com/user/repo.git
     
 -sn:[session name]  (if not used, "[unixtime]" will be assigned)
 -hm:[method name]   Hunt Method (if not used "normal" will be assigned)
@@ -30,6 +32,7 @@ Examples:
     complete            Complete Scan
     comppnoid           Complete Scan, Paranoid
 
+-rb                 Sets a repository branch (default: master)
 -gr                 Generates a report after scanning
 -or                 Opens report after generation
 -rout:[filename]    Sets the report output filename and format (default: Report_
@@ -121,14 +124,17 @@ function startscan()
   code:prefs_set('syhunt.code.checks.inflt',not hasarg('-noifa'))
   code:prefs_update()
   
-  if ctk.file.exists(target) then
+  if code:isvalidsrcurl(target) then
+    code:scanurl(target, arg('rb','master'))
+    printscanresult(code)
+  elseif ctk.file.exists(target) then
     code:scanfile(target)
     printscanresult(code)
   elseif ctk.dir.exists(target) then
     code:scandir(target)
     printscanresult(code)
   else
-    cs.printred(target..' not found.')
+    cs.printred(target..' not found or invalid.')
   end
   
   code:release()
