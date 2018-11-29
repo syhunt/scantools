@@ -32,7 +32,7 @@ Examples:
     complete            Complete Scan
     comppnoid           Complete Scan, Paranoid
 
--rb                 Sets a repository branch (default: master)
+-rb:[branch name]   Sets a repository branch (default: master)
 -gr                 Generates a report after scanning
 -or                 Opens report after generation
 -rout:[filename]    Sets the report output filename and format (default: Report_
