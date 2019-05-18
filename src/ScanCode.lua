@@ -75,6 +75,10 @@ function printscanresult(code)
 	  end
   end
   
+  if code.warnings ~= '' then
+    cs.printred('Warnings: '..code.warnings)
+  end  
+  
   if hasarg('-gr') == true then
     generatereport(code.sessionname)
   end
