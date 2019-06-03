@@ -129,7 +129,7 @@ function startscan()
   code:prefs_update()
   
   if code:isvalidsrcurl(target) then
-    code:scanurl(target, arg('rb','master'))
+    code:scanurl({url=target, branch=arg('rb','master')})
     printscanresult(code)
   elseif ctk.file.exists(target) then
     code:scanfile(target)
