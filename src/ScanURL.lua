@@ -61,6 +61,7 @@ Other parameters:
 -ver:[v]            Sets the HTTP Version (default: 1.1)
 -evids              Enables the IDS Evasion
 -evwaf              Enables the WAF Evasion
+-nofris             Disables auto follow off-domain redirect in Start URL
 -nodos              Disables Denial-of-Service tests
 -nojs               Disables JavaScript emulation and execution
 -auser:[username]   Sets a username for server authentication
@@ -194,6 +195,9 @@ function startscan()
   hs:start()
   
   -- Set the scan target and method
+  if hasarg('-nofris') then
+    hs.starturl_folre = false
+  end
   hs.starturl = arg(1)
   hs.huntmethod = arg('hm','appscan')
   hs.sourcedir = arg('srcdir','')
