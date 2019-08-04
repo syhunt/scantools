@@ -46,6 +46,10 @@ Examples:
 
 -gr                 Generates a report after scanning
 -or                 Opens report after generation
+-er                 Emails report after generation
+-etrk:[trackername] Email preferences to be used when emailing report
+-esbj:[subject]     Email subject to be used when emailing report (default:
+Syhunt Hybrid Report)
 -rout:[filename]    Sets the report output filename and format
                      (default: Report_[session name].html)
     Available Formats: html, pdf, doc, rtf, txt, xml
@@ -114,6 +118,13 @@ function generatereport(sessionname)
     print('Saved to '..outfilename..'.')
     if hasarg('-or') then
       ctk.file.exec(outfilename)
+    end
+    if hasarg('-er') then
+      symini.emailreport({
+        tracker=arg('etrk',''),
+        filename=outfilename,
+        subject=arg('esbj','Syhunt Hybrid Report')
+        })
     end
   else
     cs.printred('There was a problem generating '..outfilename)

@@ -35,6 +35,10 @@ Examples:
 -rb:[branch name]   Sets a repository branch (default: master)
 -gr                 Generates a report after scanning
 -or                 Opens report after generation
+-er                 Emails report after generation
+-etrk:[trackername] Email preferences to be used when emailing report
+-esbj:[subject]     Email subject to be used when emailing report (default:
+Syhunt Code Report)
 -rout:[filename]    Sets the report output filename and format (default: Report_
 [session name].html)
     Available Formats: html, pdf, doc, rtf, txt, xml
@@ -99,6 +103,13 @@ function generatereport(sessionname)
     if hasarg('-or') then
       ctk.file.exec(outfilename)
     end
+    if hasarg('-er') then
+      symini.emailreport({
+       tracker=arg('etrk',''),
+       filename=outfilename,
+       subject=arg('esbj','Syhunt Code Report')
+       })
+    end    
   else
     cs.printred('There was a problem generating '..outfilename)
   end
