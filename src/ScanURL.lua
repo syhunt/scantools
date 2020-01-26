@@ -72,9 +72,18 @@ Other parameters:
 -apass:[password]   Sets a password for server authentication
 -atype:[type]       Sets the auth type; Basic or Form (default: Basic)
 
+-checks             Exports Syhunt Checks list
 -about              Displays information on the current version of Syhunt
 -help (or /?)       Displays this list
   ]])
+end
+
+function printchecks()
+  local hs = symini.hybrid:new()
+  hs.onlogmessage = function(s) print(s) end
+  hs:start()
+  hs:getchecklist()
+  hs:release()
 end
 
 function printscanresult(hs)
@@ -231,6 +240,7 @@ end
 
 local cmd = {
  ['-about'] = function() print(symini.info.about) end,
+ ['-checks'] = printchecks, 
  ['-help'] = printhelp,
  ['/?'] = printhelp,
  [''] = printhelp
