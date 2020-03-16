@@ -87,25 +87,24 @@ function printchecks()
 end
 
 function printscanresult(hs)
-  if hs.vulnerable == true then
+  if hs.vulnstatus == 'Vulnerable' then
     cs.printred('VULNERABLE!')
 	if hs.vulncount == 1 then
 	  cs.printred('Found 1 vulnerability')
 	else
 	  cs.printred('Found '..hs.vulncount..' vulnerabilities')
 	end
-  else
-    if hs.aborted == false then
+  end
+  if hs.vulnstatus == 'Secure' then  
 	  cs.printgreen('SECURE.')
 	  cs.printgreen('No vulnerabilities found.')
-	else
-	  cs.printred('UNDETERMINED.')
-	  cs.printred('Scan aborted.')
-	end
   end
-  
+  if hs.aborted == true then
+      cs.printred('Fatal Error.')
+	  cs.printred(hs.errorreason)
+  end  
   if hs.warnings ~= '' then
-    cs.printred('Warnings: '..hs.warnings)
+     cs.printred('Warnings: '..hs.warnings)
   end
   
   if hasarg('-gr') == true then

@@ -14,6 +14,7 @@ Usage: scancode [target dir, file or url] [optional params]
 Examples: 
     scancode c:\source\www\
     scancode c:\source\www\file.php
+    scancode c:\mobile\myapp.apk
     scancode "c:\source code\www\"
     scancode git://sub.domain.com/repo.git
     scancode https://github.com/user/repo.git
@@ -64,7 +65,7 @@ function reportvuln(v)
 end
 
 function printscanresult(code)
-  if code.vulnerable == true then
+  if code.vulnstatus == 'Vulnerable' then
     cs.printred('VULNERABLE!')
    	if code.vulncount == 1 then
   		cs.printred('Found 1 vulnerability')
@@ -73,12 +74,17 @@ function printscanresult(code)
 	  end
 	  cs.printred('The following scripts are vulnerable:')
 	  cs.printred(code.affectedscripts)
-  else
+  end
+  if code.vulnstatus == 'Secure' then
     if ctk.utils.getarg() ~= '' then
 		  cs.printgreen('SECURE.')
 	  end
   end
   
+  if code.aborted == true then
+    cs.printred('Fatal Error.')
+    cs.printred(cs.errorreason)
+  end   
   if code.warnings ~= '' then
     cs.printred('Warnings: '..code.warnings)
   end  
