@@ -20,7 +20,9 @@ Examples:
     Available Methods:
     appscan   (or as)   Web Application Scan; Gray Box
     structbf  (or sbf)  Web Structure Brute Force; Black Box
-    top5                Top 5; OWASP Top 5; Gray Box
+    top25cwe  (or t25)  CWE Top 25 Most Dangerous Software Errors; Gray Box
+    top10     (or t10)  OWASP Top 10; Gray Box
+    top5php   (or t5)   OWASP Top 5 PHP; Gray Box
     faultinj  (or fi)   Fault Injection; Gray Box
     sqlinj    (or sqli) SQL & NoSQL Injection; Gray Box
     xss                 Cross-Site Scripting; Gray Box

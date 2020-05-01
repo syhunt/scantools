@@ -23,7 +23,9 @@ Examples:
 -hm:[method name]   Hunt Method (if not used "normal" will be assigned)
     Available Methods:
     normal              Standard Scan
-    top5                Top 5; OWASP Top 5
+    top25cwe            CWE Top 25 Most Dangerous Software Errors
+    top10               OWASP Top 10
+    top5php             OWASP Top 5 PHP
     faultinj            Fault Injection
     fileinc             File Inclusion
     sqlinj              SQL & NoSQL Injection
