@@ -35,7 +35,7 @@ Examples:
     complete  (or cmp)  Complete Scan; Gray Box
     compnodos (or cnd)  Complete Scan, No DoS; Gray Box
     comppnoid (or cpn)  Complete Scan, Paranoid; Gray box
--emu:[browser name] Browser Emulation Mode (default: msie)
+-emu:[browser name] Browser Emulation Mode (default: chrome)
     Available Modes:
     chrome    (or c)    Google Chrome
     edge      (or e)    Microsoft Edge
@@ -190,17 +190,12 @@ function startscan()
   
   -- Set the scanner preferences based on switches provided
   hs.debug = hasarg('-dbg')
-  hs:prefs_set('syhunt.dynamic.emulation.mode',arg('emu','msie'))
+  hs:prefs_set('syhunt.dynamic.emulation.mode',arg('emu','chrome'))
   hs:prefs_set('syhunt.dynamic.protocol.version','HTTP/'..arg('ver','1.1'))
   hs:prefs_set('syhunt.dynamic.evasion.evadeids',hasarg('-evids'))
   hs:prefs_set('syhunt.dynamic.evasion.evadewaf',hasarg('-evwaf'))
   hs:prefs_set('syhunt.dynamic.checks.dos',not hasarg('-nodos'))
   hs:prefs_set('syhunt.dynamic.emulation.javascript.execution',not hasarg('-nojs'))
-  if hasarg('-mcd') then
-    local n = tonumber(arg('mcd','1'))
-    hs:prefs_set('syhunt.dynamic.crawling.depth.uselimit',true)
-    hs:prefs_set('syhunt.dynamic.crawling.depth.maxnumber',n)
-  end
   if hasarg('-mnl') then
     local n = tonumber(arg('mnl','10000'))
     hs:prefs_set('syhunt.dynamic.crawling.max.linkspersite',n)
@@ -215,13 +210,21 @@ function startscan()
   end
   hs:start()
   
-  -- Set the scan target and method
+  -- Set the scan target
   if hasarg('-nofris') then
     hs.starturl_folre = false
   end
   hs.starturl = arg(1)
   hs.huntmethod = arg('hm','appscan')
   hs.sourcedir = arg('srcdir','')
+  
+  -- Set site preferences (if any)
+  -- Must be called after setting the start URL
+  if hasarg('-mcd') then
+    local n = tonumber(arg('mcd','1'))
+    siteprefs_set(hs.starturl, 'site.syhunt.dynamic.crawling.limitdepth', true)
+    siteprefs_set(hs.starturl, 'site.syhunt.dynamic.crawling.maxdepth', n)
+  end  
   
   -- Set auth credentials (if any)
   if hasarg('-auser') then
