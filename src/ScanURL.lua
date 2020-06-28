@@ -1,6 +1,7 @@
 require "SyMini.Console"
 ctk = require "Catarinka"
 cs, arg, hasarg = ctk.cs, ctk.utils.getarg, ctk.utils.hasarg
+pfcondreported = false
 
 print(string.format('SYHUNT URLSCAN %s %s %s',
   symini.info.version, string.upper(symini.info.modename),
@@ -46,17 +47,23 @@ Examples:
     
 -srcdir:[local dir] Sets a Target Code Folder (eg. "C:\www\docs\")
 
--gr                 Generates a report after scanning
+-gr                 Generates a report file after scanning
+-gx                 Generates an export file after scanning
 -or                 Opens report after generation
 -er                 Emails report after generation
 -etrk:[trackername] Email preferences to be used when emailing report
 -esbj:[subject]     Email subject to be used when emailing report (default:
 Syhunt Hybrid Report)
 -rout:[filename]    Sets the report output filename and format
-                     (default: Report_[session name].html)
-    Available Formats: html, pdf, doc, rtf, txt, xml
+    Default: Report_[session name].html
+    Available Formats: html, pdf, doc, json, rtf, txt, xml
 -rtpl:[name]        Sets the report template (default: Standard)
     Available Templates: Standard, Comparison, Compliance, Complete
+-xout:[filename]    Sets the export output filename and format 
+    Default: Export_[session name].xml
+-xout2:[filename]   Sets a second export output filename and format 
+    Default: Export_[session name].xml    
+-pfcond:[condition] Sets a pass/fail condition to be reported
 -nv                 Turn off verbose. Error and basic info still gets printed
     
 Other parameters:
@@ -110,35 +117,73 @@ function printscanresult(hs)
   end
   
   if hasarg('-gr') == true then
-    generatereport(hs.sessionname)
+    generateexport(hs.sessionname, 'rout')
+  end
+  if hasarg('-gx') == true then
+    generateexport(hs.sessionname, 'xout')
+    if hasarg('-xout2') == true then
+      generateexport(hs.sessionname, 'xout2')    
+    end
+  end   
+end
+
+function printpassfailresult(g)
+  if pfcondreported == false then
+   if hasarg('-pfcond') == true then
+     pfcondreported = true
+     if g.passfail_result == true then
+       cs.printgreen('Pass/Fail Status: PASSED.')
+     else
+       cs.printred('Pass/Fail Status: FAILED.')    
+       cs.printred(g.passfail_resultstr)
+     end
+   end
   end
 end
 
-function generatereport(sessionname)
-  print('Generating report...')
+-- Generates a scan report or export file
+function generateexport(sessionname, fnparam)
   require "Repmaker"
-  local outfilename = symini.info.sessionsdir..'Report_'..sessionname..'.html'
-  outfilename = arg('rout',outfilename)
+  local isreport = (fnparam == 'rout')  
+  local outfilename = symini.info.sessionsdir..'Report_'..sessionname
+  if isreport == true then
+    print('Generating report...')
+    outfilename = outfilename..'.html'
+  else
+    print('Generating export...')    
+    outfilename = outfilename..'.xml'
+  end
+  outfilename = arg(fnparam,outfilename) 
   local repprefs = {
     outfilename = outfilename,
     sessionname = sessionname,
-    template = arg('rtpl','Standard')
+    template = arg('rtpl','Standard'),
+    passfailcond = arg('pfcond','')
   }
-  if repmaker:genreport(repprefs) == true then
-    print('Saved to '..outfilename..'.')
+  local gen = repmaker:genreport(repprefs)
+  if gen.result == true then
+    print(gen.resultstr)  
+    printpassfailresult(gen)
+    if isreport == true then
+      handlereport(outfilename)
+    end
+  else
+    cs.printred(gen.resultstr)
+  end
+end
+
+-- Opens or emails report to user after being generated
+function handlereport(outfilename)
     if hasarg('-or') then
       ctk.file.exec(outfilename)
     end
     if hasarg('-er') then
       symini.emailreport({
-        tracker=arg('etrk',''),
-        filename=outfilename,
-        subject=arg('esbj','Syhunt Hybrid Report')
-        })
-    end
-  else
-    cs.printred('There was a problem generating '..outfilename)
-  end
+       tracker=arg('etrk',''),
+       filename=outfilename,
+       subject=arg('esbj','Syhunt Hybrid Report')
+       })
+    end  
 end
 
 function printvulndetails(v)
