@@ -79,20 +79,11 @@ Other parameters:
 -nojs               Disables JavaScript emulation and execution
 -auser:[username]   Sets a username for server authentication
 -apass:[password]   Sets a password for server authentication
--atype:[type]       Sets the auth type; Basic or Form (default: Basic)
+-atype:[type]       Sets the auth type; Basic, Form and Manual
 
--checks             Exports Syhunt Checks list
 -about              Displays information on the current version of Syhunt
 -help (or /?)       Displays this list
   ]])
-end
-
-function printchecks()
-  local hs = symini.hybrid:new()
-  hs.onlogmessage = function(s) print(s) end
-  hs:start()
-  hs:getchecklist()
-  hs:release()
 end
 
 function printscanresult(hs)
@@ -272,7 +263,7 @@ function startscan()
   end  
   
   -- Set auth credentials (if any)
-  if hasarg('-auser') then
+  if hasarg('-atype') then
     hs:setauth({
      username=arg('auser',''),
      password=arg('apass',''),
@@ -289,7 +280,6 @@ end
 
 local cmd = {
  ['-about'] = function() print(symini.info.about) end,
- ['-checks'] = printchecks, 
  ['-help'] = printhelp,
  ['/?'] = printhelp,
  [''] = printhelp
