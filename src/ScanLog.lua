@@ -2,7 +2,10 @@ require "SyMini.Console"
 ctk = require "Catarinka"
 cs, arg, hasarg = ctk.cs, ctk.utils.getarg, ctk.utils.hasarg
 gdbfn = symini.info.progdir.."\\Packs\\GeoLite2\\GeoLite2-Country.mmdb"
-geodb = require "mmdb".open(gdbfn)
+local hasbit, bit = pcall(require, "bit")
+if hasbit then
+  geodb = require "mmdb".open(gdbfn)
+end
 
 print(string.format('SYHUNT INSIGHT %s %s %s',
   symini.info.version, string.upper(symini.info.modename),
@@ -44,10 +47,12 @@ function addattack(t)
   local printinfo = function(name,value)
     print('  '..name..': '..value)
   end
-  if string.match(t.ip,'[:]') then
-    ipcountry = geodb:search_ipv6(t.ip)
-  else
-    ipcountry = geodb:search_ipv4(t.ip)
+  if hasbit then
+    if string.match(t.ip,'[:]') then
+      ipcountry = geodb:search_ipv6(t.ip)
+    else
+      ipcountry = geodb:search_ipv4(t.ip)
+    end
   end
   if t.isbreach == false then
     cs.printgreen('Attack Found')

@@ -11,6 +11,8 @@ function printhelp()
   print([[
 -list               Lists the scheduled scans
 -start              Starts the scheduler as a background process
+-stop               Stops the scheduler process (if running)
+-update             Updates scheduled events (if any)
 -help (or /?)       Displays this list
   ]])
 end
@@ -26,15 +28,21 @@ function handleparams()
   hs:release()
 end
 
-function starthide()
-  symini.scheduler_start()
-  print('Started.')
+function sendsignal(signal)
+  local res = symini.scheduler_sendsignal(signal)
+  if res.result == true then
+    cs.printgreen(res.resultstr)
+  else
+    cs.printred(res.resultstr)  
+  end
 end
 
 local cmd = {
  ['-about'] = function() print(symini.info.about) end,
  ['-help'] = printhelp,
- ['-start'] = starthide,
+ ['-start'] = function() sendsignal('start') end,
+ ['-stop'] = function() sendsignal('stop') end, 
+ ['-update'] = function() sendsignal('update') end, 
  ['/?'] = printhelp,
  [''] = printhelp
 }

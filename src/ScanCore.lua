@@ -1,4 +1,5 @@
 require "SyMini.Console"
+
 ctk = require "Catarinka"
 cs, arg, hasarg = ctk.cs, ctk.utils.getarg, ctk.utils.hasarg
 
@@ -20,7 +21,7 @@ function printhelp()
 -apikeyinfo         Displays details about your Web API Key (if previously generated)
 -apikeygen          Generates or re-generates the Web API key
 -apisignal:[signal] Sends a signal to the web API server
-	Available signals: start, stop, restart
+	Available signals: start, stop, quit
 -checks             Exports Syhunt Checks list
   ]])
   end

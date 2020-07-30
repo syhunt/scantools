@@ -46,7 +46,7 @@ Examples:
 Syhunt Code Report)
 -rout:[filename]    Sets the report output filename and format
     Default: Report_[session name].html
-    Available Formats: html, pdf, doc, json, rtf, txt, xml
+    Available Formats: html, pdf, json, txt, xml
 -rtpl:[name]        Sets the report template (default: Standard)
     Available Templates: Standard, Comparison, Compliance, Complete
 -xout:[filename]    Sets the export output filename and format 
@@ -125,7 +125,6 @@ end
 
 -- Generates a scan report or export file
 function generateexport(sessionname, fnparam)
-  require "Repmaker"
   local isreport = (fnparam == 'rout')  
   local outfilename = symini.info.sessionsdir..'Report_'..sessionname
   if isreport == true then
@@ -142,7 +141,7 @@ function generateexport(sessionname, fnparam)
     template = arg('rtpl','Standard'),
     passfailcond = arg('pfcond','')
   }
-  local gen = repmaker:genreport(repprefs)
+  local gen = symini.genreport(repprefs)
   if gen.result == true then
     print(gen.resultstr)  
     printpassfailresult(gen)
