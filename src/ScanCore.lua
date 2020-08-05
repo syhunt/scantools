@@ -11,25 +11,132 @@ function printhelp()
   local com = (symini.info.modename == 'Community Edition')
   print('________________________________________________________________\n')
   print([[
--stop               Stops all running processes from this Syhunt installation
+-stop                Stops all running processes from this Syhunt installation
   ]])  
   -- Switches below will not work in Community Edition
   if com == false then
     print([[
--ptkset:[key]       Updates your Pen-Tester Key
--ptkinfo            Displays details about your Pen-Tester Key
--apikeyinfo         Displays details about your Web API Key (if previously generated)
--apikeygen          Generates or re-generates the Web API key
--apisignal:[signal] Sends a signal to the web API server
+-ptkset:[key]        Updates your Pen-Tester Key
+-ptkinfo             Displays details about your Pen-Tester Key
+-apikeyinfo          Displays details about your Web API Key (if previously generated)
+-apikeygen           Generates or re-generates the Web API key
+-apisignal:[signal]  Sends a signal to the web API server
 	Available signals: start, stop, quit
--checks             Exports Syhunt Checks list
+-tracker:[action]    Allows to perform various issue tracker related operations
+    Available actions: add, set, send, del or list
+    add  - Adds a new tracker (GitHub, GitLab, etc)
+    set  - Sets the value of a preference key to the issue tracker preferences
+		Requires -to, -key and -value parameters
+		-to:[trackername]		
+		-key:[keyname] Example: api.auth.token
+		-value:[value]
+		-secret optional parameter to hide input when entering password or any 
+		sensitive information
+    send - Sends details about a vulnerability to the issue tracker
+		Requires -tid and -to parameters
+		-tid:[trackid] Vulnerability track ID from report
+		               Use TEST as trackid to submit a test issue
+		-to:[trackername]               
+		-note:"[yourcomment]" optional parameter to add a user note to its details
+		Usage Example:
+		ScanCore -tracker:send -to:myproject -tid:1596281007-7-4771
+    del  - Deletes a tracker by its name
+        Requires -name:[trackername] parameter
+    list - Lists all available issue trackers		
+-checks               Exports Syhunt Checks list
   ]])
   end
   print([[
--about              Displays information on the current version of Syhunt
--help (or /?)       Displays this list
+-about                Displays information on the current version of Syhunt
+-help (or /?)         Displays this list
   ]])
 end  
+
+-- Handles tracker parameter
+function trackerexists(hs, trackername, warn)
+  warn = warn or false
+  local b = hs:tracker_exists(trackername)
+  if warn == true then
+    if b == false then
+      cs.printred('Tracker not found: '..trackername)   
+    end
+  end
+  return b
+end
+
+function handletracker(action)
+  local hs = symini.hybrid:new()
+  hs:start()
+  if action == 'list' then
+    print(hs:tracker_getlistdetailed())
+  end
+  if action == 'del' then
+    local trackername = arg('name','')  
+    if trackerexists(hs, trackername, true) then
+      hs:tracker_delete(trackername)
+    end
+  end
+  if action == 'add' then
+    print('Enter the name of the tracker you want to add:')
+    local trackername = cs.readln() 
+    if trackerexists(hs, trackername) then
+      cs.printred('A tracker with this name already exists.')    
+    else
+      print('Enter the tracker type:')
+      print('		Available types are: GitHub, GitLab, JIRA or Email')
+      local trackertype = cs.readln()
+      print('Adding tracker...')
+      local res = hs:tracker_add(trackername, trackertype)
+      if res.success == true then
+        cs.printgreen(res.resultstr)
+      else
+        cs.printred(res.resultstr)
+      end      
+    end
+  end
+  if action == 'set' then
+    local trackername = arg('to','')
+    if trackerexists(hs, trackername, true) then
+      local keyname = arg('key','')
+      local value = arg('value','')
+      if hasarg('-secret') then
+        print('Enter '..keyname..':')
+        value = cs.readpwd()
+       end
+       local res = hs:tracker_setvalue(trackername, keyname, value)
+       if res.success == true then
+         cs.printgreen(res.resultstr)
+       else
+         cs.printred(res.resultstr)
+       end
+    end  
+  end
+  if action == 'send' then
+        local trackername = arg('to','')
+        if trackerexists(hs, trackername, true) then        
+          local tid = arg('tid','')
+          local issue = hs:tracker_getissuebyid(tid, arg('note',''))
+          if issue.valid == true then
+            issue.tracker = trackername
+            local res = hs:tracker_sendissue(issue)
+            if res.alreadysent == true then
+              print('Already sent!')
+            end
+            if res.success == true then
+              cs.printgreen('Success')
+            else
+              cs.printred('Error: '..res.errormsg)
+              if tid == 'debug' then
+                cs.printred(res.debuglog)
+              end
+            end
+          else
+            cs.printred('Invalid vulnerability track ID: '..tid)
+          end  
+        end
+  end
+  hs:release()
+end
 
 function handleparams()
   print('________________________________________________________________\n')
@@ -58,7 +165,10 @@ function handleparams()
 	else
 	  cs.printred('Make sure the web API server is running.')
 	end
-  end     
+  end
+  if hasarg('-tracker') then
+    handletracker(arg('tracker','list'))
+  end
 end
 
 function printchecks()
