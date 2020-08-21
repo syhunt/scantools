@@ -11,8 +11,9 @@ function printhelp()
   cs.printwhite('Type scancode -about for more information.')
   print('________________________________________________________________\n')
   print([[
-Usage: scancode [target dir, file or url] [optional params]
+Usage: scancode <target dir, file or url> [optional params]
 Examples: 
+    scancode /home/user/mysource/
     scancode c:\source\www\
     scancode c:\source\www\file.php
     scancode c:\mobile\myapp.apk
@@ -126,7 +127,7 @@ end
 -- Generates a scan report or export file
 function generateexport(sessionname, fnparam)
   local isreport = (fnparam == 'rout')  
-  local outfilename = symini.info.sessionsdir..'Report_'..sessionname
+  local outfilename = symini.info.outputdir..'Report_'..sessionname
   if isreport == true then
     print('Generating report...')
     outfilename = outfilename..'.html'

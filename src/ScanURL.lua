@@ -11,7 +11,7 @@ function printhelp()
   cs.printwhite('Type scanurl -about for more information.')
   print('________________________________________________________________\n')
   print([[
-Usage: scanurl [starturl] [optional params]
+Usage: scanurl <starturl> [optional params]
 Examples: 
     scanurl http://www.somehost.com/
     scanurl http://www.somehost.com/ -mnl:100 -nodos
@@ -45,7 +45,7 @@ Examples:
     opera     (or o)    Opera
     safari    (or s)    Safari
     
--srcdir:[local dir] Sets a Target Code Folder (eg. "C:\www\docs\")
+-srcdir:[local dir] Sets a Target Code Folder (eg. "C:\www\docs\" or "/home/user/www/")
 
 -gr                 Generates a report file after scanning
 -gx                 Generates an export file after scanning
@@ -135,7 +135,7 @@ end
 -- Generates a scan report or export file
 function generateexport(sessionname, fnparam)
   local isreport = (fnparam == 'rout')  
-  local outfilename = symini.info.sessionsdir..'Report_'..sessionname
+  local outfilename = symini.info.outputdir..'Report_'..sessionname
   if isreport == true then
     print('Generating report...')
     outfilename = outfilename..'.html'

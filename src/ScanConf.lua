@@ -10,8 +10,9 @@ function printhelp()
   cs.printwhite('Type scanconf -about for more information.')
   print('________________________________________________________________\n')
   print([[
-Usage: scanconf [server conf or INI file] [optional params]
+Usage: scanconf <server conf or INI file> [optional params]
 Examples: 
+    scanconf /home/user/conf/httpd_conf.conf
     scanconf c:\www\conf\httpd_conf.conf
     scanconf c:\httpd\php\php.ini
     scanconf "c:\web server\conf\httpd_conf.conf"

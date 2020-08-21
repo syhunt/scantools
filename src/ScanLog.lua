@@ -15,8 +15,9 @@ function printhelp()
   cs.printwhite('Type scanlog -about for more information.')
   print('________________________________________________________________\n')
   print([[
-Usage: scanlog [logfilename] [optional params]
+Usage: scanlog <logfilename> [optional params]
 Examples: 
+    scanlog home/user/www/logs/access.log
     scanlog c:\www\logs\access.log
     scanlog "c:\web logs\access.log"
     

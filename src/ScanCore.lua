@@ -39,11 +39,12 @@ function printhelp()
 		-to:[trackername]               
 		-note:"[yourcomment]" optional parameter to add a user note to its details
 		Usage Example:
-		ScanCore -tracker:send -to:myproject -tid:1596281007-7-4771
+		scancore -tracker:send -to:myproject -tid:1596281007-7-4771
     del  - Deletes a tracker by its name
         Requires -name:[trackername] parameter
     list - Lists all available issue trackers		
 -checks               Exports Syhunt Checks list
+-checkupd             Checks for Updates
   ]])
   end
   print([[
@@ -184,12 +185,29 @@ function stop()
   symini.runcmd('stop')
   print('Done.')
 end  
+
+function cleancarbon()
+  print('Cleaning Carbon installation...')
+  symini.runcmd('cleancarbon')
+  stop()
+end  
+
+function checkforupdates()
+  local stat = symini.checkinst('update')
+  if stat.veruptodate == true then
+    cs.printgreen(stat.verstatustext)
+  else
+    cs.printred(stat.verstatustext)
+  end
+end
   
 local cmd = {
  ['-checks'] = printchecks, 
  ['-about'] = function() print(symini.info.about) end,
  ['-help'] = printhelp,
  ['-stop'] = stop,
+ ['-checkupd'] = checkforupdates, 
+ ['-cleancarbon'] = cleancarbon, 
  ['/?'] = printhelp,
  [''] = printhelp
 }
