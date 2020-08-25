@@ -61,6 +61,8 @@ Syhunt Code Report)
 -inctag:[name]      Optionally stores the incremental scan data within a tag
 
 Other parameters:
+-refurl:[url]       Sets an URL associated with the current source code for
+                    reference purposes only
 -noifa              Disables input filtering analysis
 -about              Displays information on the current version of Syhunt
 -help (or /?)       Displays this list
@@ -189,6 +191,10 @@ function startscan()
     target = ctk.string.after(arg(),'"')
     target = ctk.string.before(target,'"')
   end
+  
+  if hasarg('-refurl') == true then
+    code.targeturl = arg('refurl', '')
+  end  
   
   -- Set the scanner preferences based on switches provided
   code.huntmethod = arg('hm','normal')
