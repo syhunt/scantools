@@ -56,6 +56,9 @@ Syhunt Code Report)
     Default: Export_[session name].xml 
 -pfcond:[condition] Sets a pass/fail condition to be reported
 -nv                 Turn off verbose. Error and basic info still gets printed
+-inc:[mode]         Sets the incremental scan mode (default: targetpref)
+    Available Modes: targetpref, auto, forced, disabled
+-inctag:[name]      Optionally stores the incremental scan data within a tag
 
 Other parameters:
 -noifa              Disables input filtering analysis
@@ -172,6 +175,7 @@ function startscan()
   print('________________________________________________________________\n')
   local code = symini.code:new()
   code.sessionname = arg('sn',symini.getsessionname())
+  code.sessiontag = arg('tag', '')
   
   if hasarg('-nv') == false then
     code.onlogmessage = function(s) print(s) end
@@ -191,6 +195,14 @@ function startscan()
   code.debug = hasarg('-dbg')
   code:prefs_set('syhunt.code.checks.inflt',not hasarg('-noifa'))
   code:prefs_update()
+  
+  -- Set incremental scan mode and tag (if any)
+  if hasarg('-inc') then
+    code:setincremental({
+      mode=arg('inc','targetpref'),
+      tag=arg('inctag','')
+    })
+  end  
   
   if code:isvalidsrcurl(target) then
     code:scanurl({url=target, branch=arg('rb','master')})

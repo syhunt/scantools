@@ -65,6 +65,9 @@ Syhunt Hybrid Report)
     Default: Export_[session name].xml    
 -pfcond:[condition] Sets a pass/fail condition to be reported
 -nv                 Turn off verbose. Error and basic info still gets printed
+-inc:[mode]         Sets the incremental scan mode (default: targetpref)
+    Available Modes: targetpref, auto, forced, disabled
+-inctag:[name]      Optionally stores the incremental scan data within a tag
     
 Other parameters:
 -mnl:[n]            Sets the maximum number of links per server (default: 10000)
@@ -216,6 +219,7 @@ function startscan()
   print('________________________________________________________________\n')
   local hs = symini.hybrid:new()
   hs.sessionname = arg('sn',symini.getsessionname())
+  hs.sessiontag = arg('tag', '')
   
   if hasarg('-nv') == false then
     hs.onlogmessage = function(s) print(s) end
@@ -267,6 +271,14 @@ function startscan()
      username=arg('auser',''),
      password=arg('apass',''),
      authtype=arg('atype','Basic')
+    })
+  end
+  
+  -- Set incremental scan mode and tag (if any)
+  if hasarg('-inc') then
+    hs:setincremental({
+      mode=arg('inc','targetpref'),
+      tag=arg('inctag','')
     })
   end
   
