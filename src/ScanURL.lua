@@ -158,7 +158,7 @@ function generateexport(sessionname, fnparam)
     print(gen.resultstr)  
     printpassfailresult(gen)
     if isreport == true then
-      handlereport(outfilename)
+      handlereport(gen.outfilename)
     end
   else
     cs.printred(gen.resultstr)

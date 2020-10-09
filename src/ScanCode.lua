@@ -152,7 +152,7 @@ function generateexport(sessionname, fnparam)
     print(gen.resultstr)  
     printpassfailresult(gen)
     if isreport == true then
-      handlereport(outfilename)
+      handlereport(gen.outfilename)
     end
   else
     cs.printred(gen.resultstr)
@@ -181,7 +181,7 @@ function startscan()
   
   if hasarg('-nv') == false then
     code.onlogmessage = function(s) print(s) end
-    code.onvulnfound = reportvuln
+    code.onvulnfound = reportvuln   
   end
   
   -- Expecting a target like: scancode c:\source\www\

@@ -43,17 +43,25 @@ Other parameters:
   ]])
 end
 
+function getipcountry(ip)
+  local ipcountry = 'N/A'
+  local geo = {}
+  if hasbit then
+    if string.match(ip,'[:]') then
+      geo = geodb:search_ipv6(ip)
+    else
+      geo = geodb:search_ipv4(ip)
+    end
+    if geo ~= nil then    
+      ipcountry = geo.country.names.en
+    end
+  end
+  return ipcountry
+end
+
 function addattack(t)
-  local ipcountry = {}
   local printinfo = function(name,value)
     print('  '..name..': '..value)
-  end
-  if hasbit then
-    if string.match(t.ip,'[:]') then
-      ipcountry = geodb:search_ipv6(t.ip)
-    else
-      ipcountry = geodb:search_ipv4(t.ip)
-    end
   end
   if t.isbreach == false then
     cs.printgreen('Attack Found')
@@ -62,11 +70,7 @@ function addattack(t)
   end
   printinfo('Attacker IP',t.ip)
   printinfo('Attack Description',t.description)
-  if ipcountry ~= nil then
-    printinfo('Attack Origin',ipcountry.country.names.en)
-  else
-    printinfo('Attack Origin','N/A')
-  end
+  printinfo('Attack Origin', getipcountry(t.ip))
   if t.tooltitle ~= '' then
     printinfo('Tool',t.tooltitle)
   end
