@@ -22,9 +22,10 @@ Examples:
     scancode https://github.com/user/repo.git
     
 -sn:[session name]  (if not used, "[unixtime]" will be assigned)
--hm:[method name]   Hunt Method (if not used "normal" will be assigned)
+-hm:[method name]   Hunt Method (if not used "appscan" will be assigned)
     Available Methods:
-    normal              Standard Scan
+    appscan             Standard Scan (Client and Server-Side Focused)
+    appscanss           Server-Side Code Focused Scan
     top25cwe            CWE Top 25 Most Dangerous Software Errors
     top10               OWASP Top 10
     top5php             OWASP Top 5 PHP

@@ -19,7 +19,8 @@ Examples:
 -sn:[session name]  (if not used, "[unixtime]" will be assigned)
 -hm:[method name]   Hunt Method (if not used, "appscan" will be assigned)
     Available Methods:
-    appscan   (or as)   Web Application Scan; Gray Box
+    appscan   (or as)   Web Application Scan (Client and Server-Side Focused); Gray Box
+    appscanss (or asss) Web Application Scan (Server-Side Focused); Gray Box
     structbf  (or sbf)  Web Structure Brute Force; Black Box
     top25cwe  (or t25)  CWE Top 25 Most Dangerous Software Errors; Gray Box
     top10     (or t10)  OWASP Top 10; Gray Box

@@ -1,11 +1,11 @@
 require "SyMini.Console"
 ctk = require "Catarinka"
 cs, arg, hasarg = ctk.cs, ctk.utils.getarg, ctk.utils.hasarg
-gdbfn = symini.info.progdir.."\\Packs\\GeoLite2\\GeoLite2-Country.mmdb"
+--[[gdbfn = symini.info.progdir.."\\Packs\\GeoLite2\\GeoLite2-Country.mmdb"
 local hasbit, bit = pcall(require, "bit")
 if hasbit then
   geodb = require "mmdb".open(gdbfn)
-end
+end]]
 
 print(string.format('SYHUNT INSIGHT %s %s %s',
   symini.info.version, string.upper(symini.info.modename),
@@ -43,7 +43,7 @@ Other parameters:
   ]])
 end
 
-function getipcountry(ip)
+--[[function getipcountry(ip)
   local ipcountry = 'N/A'
   local geo = {}
   if hasbit then
@@ -57,7 +57,7 @@ function getipcountry(ip)
     end
   end
   return ipcountry
-end
+end]]
 
 function addattack(t)
   local printinfo = function(name,value)
@@ -70,7 +70,8 @@ function addattack(t)
   end
   printinfo('Attacker IP',t.ip)
   printinfo('Attack Description',t.description)
-  printinfo('Attack Origin', getipcountry(t.ip))
+  printinfo('Attack Origin', t.ipcountry)
+  --printinfo('Attack Origin', getipcountry(t.ip))
   if t.tooltitle ~= '' then
     printinfo('Tool',t.tooltitle)
   end
