@@ -261,9 +261,9 @@ function startscan()
   -- Set site preferences (if any)
   -- Must be called after setting the start URL
   if hasarg('-mcd') then
-    local n = tonumber(arg('mcd','1'))
-    siteprefs_set(hs.starturl, 'site.syhunt.dynamic.crawling.limitdepth', true)
-    siteprefs_set(hs.starturl, 'site.syhunt.dynamic.crawling.maxdepth', n)
+    local n = tonumber(arg('mcd','0'))
+    symini.prefs_set('site.syhunt.dynamic.crawling.limitdepth', true, hs.starturl)
+    symini.prefs_set('site.syhunt.dynamic.crawling.maxdepth', n, hs.starturl)
   end  
   
   -- Set auth credentials (if any)

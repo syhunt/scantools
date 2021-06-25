@@ -20,6 +20,9 @@ Examples:
     scancode "c:\source code\www\"
     scancode git://sub.domain.com/repo.git
     scancode https://github.com/user/repo.git
+    scancode https://dev.azure.com/user/project
+    scancode https://myserver/tfs/project
+    scancode collection:https://dev.azure.com/user$/project
     
 -sn:[session name]  (if not used, "[unixtime]" will be assigned)
 -hm:[method name]   Hunt Method (if not used "appscan" will be assigned)
@@ -38,7 +41,10 @@ Examples:
     complete            Complete Scan
     comppnoid           Complete Scan, Paranoid
 
--rb:[branch name]   Sets a repository branch (default: master)
+-rb:[branch name]   Sets a GIT repository branch (default: master)
+-tfsv:[version]     Sets a TFS version (default: latest)
+    Supported Versions: latest, 2018, 2017, 2015, 2013, 2012, 2010
+    Recommended Versions: latest, 2018, 2017, 2015
 -gr                 Generates a report file after scanning
 -gx                 Generates an export file after scanning
 -or                 Opens report after generation
@@ -62,6 +68,7 @@ Syhunt Code Report)
 -inctag:[name]      Optionally stores the incremental scan data within a tag
 
 Other parameters:
+-excp:[pathlist]    Excludes paths from the analysis (eg: /path/*,/path2/*)
 -refurl:[url]       Sets an URL associated with the current source code for
                     reference purposes only
 -noifa              Disables input filtering analysis
@@ -196,6 +203,9 @@ function startscan()
   if hasarg('-refurl') == true then
     code.targeturl = arg('refurl', '')
   end  
+  if hasarg('-excp') == true then
+    code.exclusions_pathlist = arg('excp', '')
+  end    
   
   -- Set the scanner preferences based on switches provided
   code.huntmethod = arg('hm','normal')
@@ -212,7 +222,7 @@ function startscan()
   end  
   
   if code:isvalidsrcurl(target) then
-    code:scanurl({url=target, branch=arg('rb','master')})
+    code:scanurl({url=target, branch=arg('rb','master'), tfsver=arg('tfsv','latest')})
     printscanresult(code)
   elseif ctk.file.exists(target) then
     code:scanfile(target)

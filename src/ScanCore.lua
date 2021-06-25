@@ -12,6 +12,23 @@ function printhelp()
   print('________________________________________________________________\n')
   print([[
 -stop                Stops all running processes from this Syhunt installation
+-runcmd:[cmd]
+  Available actions: 
+  stop                Stops all running processes from this Syhunt installation
+  clearinc            Clears the incremental cache (if any)
+  clearpref           Clears the global preferences
+  clearsite           Clears the site preferences (if any)
+  cleartrack          Clears any added issue trackers
+-prefset:[key]       Update the value of a preference
+    Requires -value or -fromfile parameter
+    -v:[value]   Value to be set
+    -fromfile:[filename] Reads the value contents from a file
+    -vsecret optional parameter to hide input when entering password or any 
+		sensitive information
+    -vstring optional parameter that forces a value as string
+    -tg:[url] optional parameter that allows to set the value as a site preference
+-prefprint:[key]     Prints the current value of a preference    
+    -tg:[url] optional parameter that allows to read the value as a site preference
   ]])  
   -- Switches below will not work in Community Edition
   if com == false then
@@ -29,9 +46,10 @@ function printhelp()
 		Requires -to, -key and -value parameters
 		-to:[trackername]		
 		-key:[keyname] Example: api.auth.token
-		-value:[value]
-		-secret optional parameter to hide input when entering password or any 
+		-v:[value]
+		-vsecret optional parameter to hide input when entering password or any 
 		sensitive information
+        -vstring optional parameter that forces a value as string
     send - Sends details about a vulnerability to the issue tracker
 		Requires -tid and -to parameters
 		-tid:[trackid] Vulnerability track ID from report
@@ -99,11 +117,14 @@ function handletracker(action)
     local trackername = arg('to','')
     if trackerexists(hs, trackername, true) then
       local keyname = arg('key','')
-      local value = arg('value','')
-      if hasarg('-secret') then
+      local value = arg('v','')
+       if hasarg('-vsecret') then
         print('Enter '..keyname..':')
         value = cs.readpwd()
        end
+       if hasarg('-vstring') == false then
+        value = symini.strtocidvalue(value)
+       end   
        local res = hs:tracker_setvalue(trackername, keyname, value)
        if res.success == true then
          cs.printgreen(res.resultstr)
@@ -139,18 +160,65 @@ function handletracker(action)
   hs:release()
 end
 
+function printresult(res)
+  if res.result == true then
+    cs.printgreen(res.resultstr)
+  else
+    cs.printred(res.resultstr)    
+  end
+end
+
+function setprefvalue(key,value)
+  printresult(symini.prefs_set(key,value,arg('tg','')))
+end
+
 function handleparams()
   print('________________________________________________________________\n')
+  if hasarg('-runcmd') then
+    printresult(symini.runcmd(arg('runcmd','')))
+  end
+  if hasarg('-printinfo') then
+    print(symini.info[arg('printinfo','')])
+  end  
   if hasarg('-ptkset') then
-    local res = symini.setptk(arg('ptkset',''))
-    if res.result == true then
-      cs.printgreen(res.resulttext)
-    else
-      cs.printred(res.resulttext)    
-    end
+    printresult(symini.setptk(arg('ptkset','')))
   end
   if hasarg('-ptkinfo') then
     print(symini.getptkdetails('text'))
+  end
+  if hasarg('-prefset') then
+    local keyname = arg('prefset','')
+    local hasvalue = false
+    local value = ''
+    if hasarg('-v') then 
+      hasvalue = true
+      value = arg('v','')
+    end
+    if hasarg('-vsecret') then
+      print('Enter '..keyname..':')
+      hasvalue = true      
+      value = cs.readpwd()
+    end
+    if hasarg('-fromfile') then
+      local fn = arg('fromfile','')
+      if ctk.file.exists(fn) then
+        hasvalue = true
+        value = ctk.file.getcontents(fn)
+      else
+        cs.printred('Error: input file not found.')
+      end    
+    end
+    if hasvalue == true then
+      if hasarg('-vstring') == false then
+        value = symini.strtocidvalue(value)
+      end   
+      setprefvalue(keyname,value)
+    else
+      cs.printred('Error: missing value parameter.')
+    end
+  end    
+  if hasarg('-prefprint') then  
+    printresult(symini.prefs_get(arg('prefprint',''),arg('tg','')))
   end
   if hasarg('-apisignal') then
     print(arg('apisignal',''))
@@ -160,12 +228,7 @@ function handleparams()
     print(symini.getptkdetails().webapikey)
   end    
   if hasarg('-apikeygen') then
-    local res = symini.genwebapikey()
-    if res.result == true then
-	  cs.printgreen(res.key) 
-	else
-	  cs.printred('Make sure the web API server is running.')
-	end
+    printresult(symini.genwebapikey())
   end
   if hasarg('-tracker') then
     handletracker(arg('tracker','list'))
@@ -186,6 +249,8 @@ function stop()
   print('Done.')
 end  
 
+-- Warning: this command must only be called by the Syhunt setup. If you call it
+-- you will have to reinstall Syhunt.
 function cleancarbon()
   print('Cleaning Carbon installation...')
   symini.runcmd('cleancarbon')
