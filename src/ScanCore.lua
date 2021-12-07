@@ -1,6 +1,6 @@
 require "SyMini.Console"
 
-ctk = require "Catarinka"
+ctk = require "Catalunya"
 cs, arg, hasarg = ctk.cs, ctk.utils.getarg, ctk.utils.hasarg
 
 print(string.format('SYHUNT CORE %s %s %s',
@@ -19,6 +19,8 @@ function printhelp()
   clearpref           Clears the global preferences
   clearsite           Clears the site preferences (if any)
   cleartrack          Clears any added issue trackers
+  update              Checks, downloads and install any updates
+    If you are on Linux, use the scanupdate command instead.
 -prefset:[key]       Update the value of a preference
     Requires -value or -fromfile parameter
     -v:[value]   Value to be set
@@ -34,6 +36,7 @@ function printhelp()
   if com == false then
     print([[
 -ptkset:[key]        Updates your Pen-Tester Key
+-ptkset:[filename]   Updates your Pen-Tester Key from a file
 -ptkinfo             Displays details about your Pen-Tester Key
 -apikeyinfo          Displays details about your Web API Key (if previously generated)
 -apikeygen           Generates or re-generates the Web API key
@@ -61,6 +64,7 @@ function printhelp()
     del  - Deletes a tracker by its name
         Requires -name:[trackername] parameter
     list - Lists all available issue trackers		
+-impdump:[filename]   Imports an Icy Dark dump file
 -checks               Exports Syhunt Checks list
 -checkupd             Checks for Updates
   ]])
@@ -81,6 +85,18 @@ function trackerexists(hs, trackername, warn)
     end
   end
   return b
+end
+
+function handleimportdump(filename)
+  local id = symini.icydark:new()
+  id:start()
+  local imp = id:importdump(filename)
+    if imp.b == false then
+      cs.printred(imp.s)  
+    else
+      cs.printgreen(imp.s)    
+    end
+  id:release()
 end
 
 function handletracker(action)
@@ -233,6 +249,9 @@ function handleparams()
   if hasarg('-tracker') then
     handletracker(arg('tracker','list'))
   end
+  if hasarg('-impdump') then
+    handleimportdump(arg('impdump',''))
+  end  
 end
 
 function printchecks()

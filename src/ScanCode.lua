@@ -1,5 +1,5 @@
 require "SyMini"
-ctk = require "Catarinka"
+ctk = require "Catalunya"
 cs, arg, hasarg = ctk.cs, ctk.utils.getarg, ctk.utils.hasarg
 pfcondreported = false
 
@@ -41,7 +41,7 @@ Examples:
     complete            Complete Scan
     comppnoid           Complete Scan, Paranoid
 
--rb:[branch name]   Sets a GIT repository branch (default: master)
+-rb:[branch name]   Sets a GIT repository branch
 -tfsv:[version]     Sets a TFS version (default: latest)
     Supported Versions: latest, 2018, 2017, 2015, 2013, 2012, 2010
     Recommended Versions: latest, 2018, 2017, 2015
@@ -222,7 +222,7 @@ function startscan()
   end  
   
   if code:isvalidsrcurl(target) then
-    code:scanurl({url=target, branch=arg('rb','master'), tfsver=arg('tfsv','latest')})
+    code:scanurl({url=target, branch=arg('rb',''), tfsver=arg('tfsv','latest')})
     printscanresult(code)
   elseif ctk.file.exists(target) then
     code:scanfile(target)

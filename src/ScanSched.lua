@@ -1,5 +1,5 @@
 require "SyMini.Console"
-ctk = require "Catarinka"
+ctk = require "Catalunya"
 cs, arg, hasarg = ctk.cs, ctk.utils.getarg, ctk.utils.hasarg
 
 print(string.format('SYHUNT SCAN SCHEDULER %s %s %s',

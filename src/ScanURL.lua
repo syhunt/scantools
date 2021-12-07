@@ -1,5 +1,5 @@
 require "SyMini.Console"
-ctk = require "Catarinka"
+ctk = require "Catalunya"
 cs, arg, hasarg = ctk.cs, ctk.utils.getarg, ctk.utils.hasarg
 pfcondreported = false
 
@@ -73,7 +73,6 @@ Syhunt Hybrid Report)
 Other parameters:
 -mnl:[n]            Sets the maximum number of links per server (default: 10000)
 -mnr:[n]            Sets the maximum number of retries (default: 2)
--mcd:[n]            Sets the maximum crawling depth (default: unlimited)
 -tmo:[ms]           Sets the timeout time (default: 8000)
 -ver:[v]            Sets the HTTP Version (default: 1.1)
 -evids              Enables the IDS Evasion
@@ -110,7 +109,6 @@ function printscanresult(hs)
   if hs.warnings ~= '' then
      cs.printred('Warnings: '..hs.warnings)
   end
-  
   if hasarg('-gr') == true then
     generateexport(hs.sessionname, 'rout')
   end
@@ -257,14 +255,6 @@ function startscan()
   hs.starturl = arg(1)
   hs.huntmethod = arg('hm','appscan')
   hs.sourcedir = arg('srcdir','')
-  
-  -- Set site preferences (if any)
-  -- Must be called after setting the start URL
-  if hasarg('-mcd') then
-    local n = tonumber(arg('mcd','0'))
-    symini.prefs_set('site.syhunt.dynamic.crawling.limitdepth', true, hs.starturl)
-    symini.prefs_set('site.syhunt.dynamic.crawling.maxdepth', n, hs.starturl)
-  end  
   
   -- Set auth credentials (if any)
   if hasarg('-atype') then

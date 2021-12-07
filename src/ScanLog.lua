@@ -1,5 +1,5 @@
 require "SyMini.Console"
-ctk = require "Catarinka"
+ctk = require "Catalunya"
 cs, arg, hasarg = ctk.cs, ctk.utils.getarg, ctk.utils.hasarg
 --[[gdbfn = symini.info.progdir.."\\Packs\\GeoLite2\\GeoLite2-Country.mmdb"
 local hasbit, bit = pcall(require, "bit")
