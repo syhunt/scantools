@@ -36,6 +36,8 @@ Examples:
     fileinc             File Inclusion
     sqlinj              SQL & NoSQL Injection
     xss                 Cross-Site Scripting
+    log4shell           Log4Shell Scan    
+    spring4shell		Spring4Shell Scan
     malscan             Malware Content
     unvredir            Unvalidated Redirects
     complete            Complete Scan
@@ -45,13 +47,13 @@ Examples:
 -tfsv:[version]     Sets a TFS version (default: latest)
     Supported Versions: latest, 2018, 2017, 2015, 2013, 2012, 2010
     Recommended Versions: latest, 2018, 2017, 2015
--gr                 Generates a report file after scanning
--gx                 Generates an export file after scanning
+-nr                 Disables report file generation after scanning
 -or                 Opens report after generation
--er                 Emails report after generation
--etrk:[trackername] Email preferences to be used when emailing report
--esbj:[subject]     Email subject to be used when emailing report (default:
-Syhunt Code Report)
+-tk:[trackername]   Sends results to a tracker after scanning.
+					Depending on the tracker type, results can be a report,
+					export file or vulnerability brief
+                    Can be combined with the -pfcond parameter.
+					Additional trackers can be provided using -tk2 and -tk3
 -rout:[filename]    Sets the report output filename and format
     Default: Report_[session name].html
     Available Formats: html, pdf, json, txt, xml
@@ -59,13 +61,15 @@ Syhunt Code Report)
     Available Templates: Standard, Comparison, Compliance, Complete
 -xout:[filename]    Sets the export output filename and format 
     Default: Export_[session name].xml 
--xout2:[filename]    Sets a second export output filename and format
+-xout2:[filename]   Sets a second export output filename and format
     Default: Export_[session name].xml 
 -pfcond:[condition] Sets a pass/fail condition to be reported
 -nv                 Turn off verbose. Error and basic info still gets printed
 -inc:[mode]         Sets the incremental scan mode (default: targetpref)
     Available Modes: targetpref, auto, forced, disabled
 -inctag:[name]      Optionally stores the incremental scan data within a tag
+-tml:[time]         Sets the maximum scan time limit (default: no limit)
+    Examples: 1d, 3h, 2h30m, 50m
 
 Other parameters:
 -excp:[pathlist]    Excludes paths from the analysis (eg: /path/*,/path2/*)
@@ -112,15 +116,45 @@ function printscanresult(code)
     cs.printred('Warnings: '..code.warnings)
   end  
   
-  if hasarg('-gr') == true then
-    generateexport(code.sessionname, 'rout')
+  generateexport(code)
+end
+
+function submitresults(argname, gen, repprefs)
+  if hasarg('-'..argname) == true then
+   local notifytracker = true
+   local hs = symini.hybrid:new()
+   hs:start()
+   gen.trackername = arg(argname,'')
+   local notifyonfailonly = hs:tracker_getvalue(gen.trackername, 'notifyonfailonly')
+   if notifyonfailonly == true and gen.passfail_result == true and hasarg('-pfcond') == true then
+     notifytracker = false
+   end  
+   if notifytracker == true then   
+     local issue = hs:tracker_getissuetemplate(gen)  
+     issue.debug = hasarg('-dbg')
+    -- Ignore if a compatible report or export file for the specified tracker is
+    -- available. If not, generate compatible one
+     repprefs.skipfirst = true
+     repprefs.overwrite = false
+     repprefs.outfilename = nil
+     repprefs.outfilename2 = issue.attachfilename
+     print('Attachment read from: '..issue.attachfilename_source)
+     local gen = symini.genreport(repprefs)
+     -- Updates the attachment files (if any)
+     issue.attachfilename = gen.outfilename2
+     -- Finally, submits the results to the tracker
+     local res = hs:tracker_sendissue(issue) 
+       if res.success == true then
+         cs.printgreen('Scan results sent! '..res.errormsg)
+       else
+         cs.printred('Failed to send scan results! '..res.errormsg)
+       end
+      if issue.debug == true then
+       print(res.debuglog)
+     end
+   end
+   hs:release()
   end
-  if hasarg('-gx') == true then
-    generateexport(code.sessionname, 'xout')
-    if hasarg('-xout2') == true then
-      generateexport(code.sessionname, 'xout2')    
-    end
-  end  
 end
 
 function printpassfailresult(g)
@@ -138,47 +172,38 @@ function printpassfailresult(g)
 end
 
 -- Generates a scan report or export file
-function generateexport(sessionname, fnparam)
-  local isreport = (fnparam == 'rout')  
-  local outfilename = symini.info.outputdir..'Report_'..sessionname
-  if isreport == true then
+function generateexport(hs)
+  if hasarg('-nr') == false then
     print('Generating report...')
-    outfilename = outfilename..'.html'
-  else
-    print('Generating export...')    
-    outfilename = outfilename..'.xml'
   end
-  outfilename = arg(fnparam,outfilename) 
   local repprefs = {
-    outfilename = outfilename,
-    sessionname = sessionname,
+    outfilename  =  arg('rout',''),
+    outfilename2 =  arg('xout',''),
+    outfilename3 =  arg('xout2',''),  
+    sessionname = hs.sessionname,
     template = arg('rtpl','Standard'),
-    passfailcond = arg('pfcond','')
+    passfailcond = arg('pfcond',''),
+    skipfirst = hasarg('-nr'),
+    open = hasarg('-or')
   }
   local gen = symini.genreport(repprefs)
-  if gen.result == true then
-    print(gen.resultstr)  
-    printpassfailresult(gen)
-    if isreport == true then
-      handlereport(gen.outfilename)
+  if hasarg('-nr') == false then
+    if gen.result == true then
+      print(gen.resultstr)  
+      printpassfailresult(gen)
+    else
+      cs.printred(gen.resultstr)
     end
-  else
-    cs.printred(gen.resultstr)
   end
-end
-
--- Opens or emails report to user after being generated
-function handlereport(outfilename)
-    if hasarg('-or') then
-      ctk.file.exec(outfilename)
-    end
-    if hasarg('-er') then
-      symini.emailreport({
-       tracker=arg('etrk',''),
-       filename=outfilename,
-       subject=arg('esbj','Syhunt Code Report')
-       })
-    end  
+  -- Submits results to the trackers (if any) if the pass/fail condition is met
+  local pfcond = arg('pfcond','')
+  submitresults('tk', gen, repprefs)
+  submitresults('tk2', gen, repprefs)
+  submitresults('tk3', gen, repprefs)  
+  -- etrk and si parameters are now deprecated and will be removed in future releases
+  -- -tk must be used instead       
+  submitresults('si', gen, repprefs)
+  submitresults('etrk', gen, repprefs)
 end
 
 function startscan()
@@ -211,6 +236,11 @@ function startscan()
   code.huntmethod = arg('hm','normal')
   code.debug = hasarg('-dbg')
   code:prefs_set('syhunt.code.checks.inflt',not hasarg('-noifa'))
+  if hasarg('-tml') then
+    local n = arg('tml','')
+    code:prefs_set('syhunt.code.options.timelimit.enabled',true)
+    code:prefs_set('syhunt.code.options.timelimit.value',n)
+  end
   code:prefs_update()
   
   -- Set incremental scan mode and tag (if any)

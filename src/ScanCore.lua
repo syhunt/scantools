@@ -19,6 +19,7 @@ function printhelp()
   clearpref           Clears the global preferences
   clearsite           Clears the site preferences (if any)
   cleartrack          Clears any added issue trackers
+  listlengthy         Debug: Lists scans that took over 1 hour to complete
   update              Checks, downloads and install any updates
     If you are on Linux, use the scanupdate command instead.
 -prefset:[key]       Update the value of a preference
@@ -64,7 +65,7 @@ function printhelp()
     del  - Deletes a tracker by its name
         Requires -name:[trackername] parameter
     list - Lists all available issue trackers		
--impdump:[filename]   Imports an Icy Dark dump file
+-impdump:[filename]   Imports a Syhunt Breach dump file
 -checks               Exports Syhunt Checks list
 -checkupd             Checks for Updates
   ]])
@@ -88,7 +89,7 @@ function trackerexists(hs, trackername, warn)
 end
 
 function handleimportdump(filename)
-  local id = symini.icydark:new()
+  local id = symini.breach:new()
   id:start()
   local imp = id:importdump(filename)
     if imp.b == false then
@@ -156,6 +157,7 @@ function handletracker(action)
           local issue = hs:tracker_getissuebyid(tid, arg('note',''))
           if issue.valid == true then
             issue.tracker = trackername
+            issue.usetemplate = true
             local res = hs:tracker_sendissue(issue)
             if res.alreadysent == true then
               print('Already sent!')
@@ -190,9 +192,20 @@ end
 
 function handleparams()
   print('________________________________________________________________\n')
+  if hasarg('-termpid') then
+    printresult(symini.termpid(arg('termpid','')))
+  end  
   if hasarg('-runcmd') then
     printresult(symini.runcmd(arg('runcmd','')))
   end
+  if hasarg('-unzipfile') then
+    t = {}
+    t.infilename = arg('unzipfile','')
+    t.outdirname = arg('outdir','')
+    t.domain = arg('domain','')
+    t.usehexnames = true
+    symini.unzipfile(t)
+  end  
   if hasarg('-printinfo') then
     print(symini.info[arg('printinfo','')])
   end  

@@ -3,7 +3,7 @@ ctk = require "Catalunya"
 cs, arg, hasarg = ctk.cs, ctk.utils.getarg, ctk.utils.hasarg
 pfcondreported = false
 
-print(string.format('SYHUNT ICYDARK %s %s %s',
+print(string.format('SYHUNT BREACH %s %s %s',
   symini.info.version_icydark, string.upper(symini.info.modename),
   symini.info.copyright))
 
@@ -29,13 +29,13 @@ Examples:
     darkonly        Dark-Only (K)
     darknoid        Dark Web Scan Paranoid (Experimental; SDK++)
                          
--gr                 Generates a report file after scanning
--gx                 Generates an export file after scanning
+-nr                 Disables report file generation after scanning
 -or                 Opens report after generation
--er                 Emails report after generation
--etrk:[trackername] Email preferences to be used when emailing report
--esbj:[subject]     Email subject to be used when emailing report (default:
-Syhunt IcyDark Report)
+-tk:[trackername]   Sends results to a tracker after scanning.
+					Depending on the tracker type, results can be a report,
+					export file or vulnerability brief
+                    Can be combined with the -pfcond parameter.
+					Additional trackers can be provided using -tk2 and -tk3
 -rout:[filename]    Sets the report output filename and format
     Default: Report_[session name].html
     Available Formats: html, pdf, json, txt, xml
@@ -46,6 +46,8 @@ Syhunt IcyDark Report)
 -xout2:[filename]   Sets a second export output filename and format 
     Default: Export_[session name].xml    
 -pfcond:[condition] Sets a pass/fail condition to be reported
+-tml:[time]         Sets the maximum scan time limit (default: no limit)
+    Examples: 1d, 3h, 2h30m, 50m
 -nv                 Turn off verbose. Error and basic info still gets printed
 
 Other parameters:
@@ -58,6 +60,44 @@ end
 function reportthreat(v)
   cs.printgreen(string.format('Found: %s',v.checkname))
   cs.printgreen('   Risk: '..v.risk)
+end
+
+function submitresults(argname, gen, repprefs)
+  if hasarg('-'..argname) == true then
+   local notifytracker = true
+   local hs = symini.hybrid:new()
+   hs:start()
+   gen.trackername = arg(argname,'')
+   local notifyonfailonly = hs:tracker_getvalue(gen.trackername, 'notifyonfailonly')
+   if notifyonfailonly == true and gen.passfail_result == true and hasarg('-pfcond') == true then
+     notifytracker = false
+   end
+   if notifytracker == true then   
+     local issue = hs:tracker_getissuetemplate(gen)  
+     issue.debug = hasarg('-dbg')
+    -- Ignore if a compatible report or export file for the specified tracker is
+    -- available. If not, generate compatible one
+     repprefs.skipfirst = true
+     repprefs.overwrite = false
+     repprefs.outfilename = nil
+     repprefs.outfilename2 = issue.attachfilename
+     print('Attachment read from: '..issue.attachfilename_source)
+     local gen = symini.genreport(repprefs)
+     -- Updates the attachment files (if any)
+     issue.attachfilename = gen.outfilename2
+     -- Finally, submits the results to the tracker
+     local res = hs:tracker_sendissue(issue) 
+       if res.success == true then
+         cs.printgreen('Scan results sent! '..res.errormsg)
+       else
+         cs.printred('Failed to send scan results! '..res.errormsg)
+       end
+      if issue.debug == true then
+       print(res.debuglog)
+     end
+   end
+   hs:release()
+  end
 end
 
 function printscanresult(hs)
@@ -79,16 +119,7 @@ function printscanresult(hs)
   if hs.warnings ~= '' then
      cs.printred('Warnings: '..hs.warnings)
   end
-  
-  if hasarg('-gr') == true then
-    generateexport(hs.sessionname, 'rout')
-  end
-  if hasarg('-gx') == true then
-    generateexport(hs.sessionname, 'xout')
-    if hasarg('-xout2') == true then
-      generateexport(hs.sessionname, 'xout2')    
-    end
-  end   
+  generateexport(hs)
 end
 
 function printpassfailresult(g)
@@ -106,52 +137,43 @@ function printpassfailresult(g)
 end
 
 -- Generates a scan report or export file
-function generateexport(sessionname, fnparam)
-  local isreport = (fnparam == 'rout')  
-  local outfilename = symini.info.outputdir..'Report_'..sessionname
-  if isreport == true then
+function generateexport(hs)
+  if hasarg('-nr') == false then
     print('Generating report...')
-    outfilename = outfilename..'.html'
-  else
-    print('Generating export...')    
-    outfilename = outfilename..'.xml'
   end
-  outfilename = arg(fnparam,outfilename) 
   local repprefs = {
-    outfilename = outfilename,
-    sessionname = sessionname,
+    outfilename  =  arg('rout',''),
+    outfilename2 =  arg('xout',''),
+    outfilename3 =  arg('xout2',''),  
+    sessionname = hs.sessionname,
     template = arg('rtpl','Standard'),
-    passfailcond = arg('pfcond','')
+    passfailcond = arg('pfcond',''),
+    skipfirst = hasarg('-nr'),
+    open = hasarg('-or')
   }
   local gen = symini.genreport(repprefs)
-  if gen.result == true then
-    print(gen.resultstr)  
-    printpassfailresult(gen)
-    if isreport == true then
-      handlereport(gen.outfilename)
+  if hasarg('-nr') == false then
+    if gen.result == true then
+      print(gen.resultstr)  
+      printpassfailresult(gen)
+    else
+      cs.printred(gen.resultstr)
     end
-  else
-    cs.printred(gen.resultstr)
   end
-end
-
--- Opens or emails report to user after being generated
-function handlereport(outfilename)
-    if hasarg('-or') then
-      ctk.file.exec(outfilename)
-    end
-    if hasarg('-er') then
-      symini.emailreport({
-       tracker=arg('etrk',''),
-       filename=outfilename,
-       subject=arg('esbj','Syhunt IcyDark Report')
-       })
-    end  
+  -- Submits results to the trackers (if any) if the pass/fail condition is met
+  local pfcond = arg('pfcond','')
+  submitresults('tk', gen, repprefs)
+  submitresults('tk2', gen, repprefs)
+  submitresults('tk3', gen, repprefs)  
+  -- etrk and si parameters are now deprecated and will be removed in future releases
+  -- -tk must be used instead       
+  submitresults('si', gen, repprefs)
+  submitresults('etrk', gen, repprefs)
 end
 
 function startscan()
   print('________________________________________________________________\n')
-  i = symini.icydark:new()
+  i = symini.breach:new()
 
   if hasarg('-nv') == false then
     i.onlogmessage = function(s) print(s) end
@@ -163,6 +185,12 @@ function startscan()
   i.debug = hasarg('-dbg')
   i.sessionname = arg('sn',symini.getsessionname())
   i.huntmethod = arg('hm','darkplus')
+  
+  if hasarg('-tml') then
+    local n = arg('tml','')
+    i:prefs_set('syhunt.icydark.options.timelimit.enabled',true)
+    i:prefs_set('syhunt.icydark.options.timelimit.value',n)
+  end
   
   -- Expecting a target like: syhunt.com
 

@@ -30,6 +30,8 @@ Examples:
     xss                 Cross-Site Scripting; Gray Box
     fileinc   (or finc) File Inclusion; Gray Box
     fileold   (or fold) Old & Backup Files; Gray Box
+    log4shell (or l4s)  Log4Shell Scan; Gray Box
+    spring4shell (or s4s)  Spring4Shell Scan; Gray Box
     malscan   (or mal)  Malware Content; Gray Box
     unvredir  (or ur)   Unvalidated Redirects; Gray Box
     passive   (or pas)  Passive Scan; Black box
@@ -48,22 +50,20 @@ Examples:
     
 -srcdir:[local dir] Sets a Target Code Folder (eg. "C:\www\docs\" or "/home/user/www/")
 
--gr                 Generates a report file after scanning
--gx                 Generates an export file after scanning
+-tk:[trackername]   Sends results to a tracker after scanning.
+					Depending on the tracker type, results can be a report,
+					export file or vulnerability brief
+                    Can be combined with the -pfcond parameter.
+					Additional trackers can be provided using -tk2 and -tk3
+-nr                 Disables report file generation after scanning
 -or                 Opens report after generation
--er                 Emails report after generation
--etrk:[trackername] Email preferences to be used when emailing report
--esbj:[subject]     Email subject to be used when emailing report (default:
-Syhunt Hybrid Report)
 -rout:[filename]    Sets the report output filename and format
     Default: Report_[session name].html
     Available Formats: html, pdf, json, txt, xml
 -rtpl:[name]        Sets the report template (default: Standard)
     Available Templates: Standard, Comparison, Compliance, Complete
 -xout:[filename]    Sets the export output filename and format 
-    Default: Export_[session name].xml
 -xout2:[filename]   Sets a second export output filename and format 
-    Default: Export_[session name].xml    
 -pfcond:[condition] Sets a pass/fail condition to be reported
 -nv                 Turn off verbose. Error and basic info still gets printed
 -inc:[mode]         Sets the incremental scan mode (default: targetpref)
@@ -72,8 +72,10 @@ Syhunt Hybrid Report)
     
 Other parameters:
 -mnl:[n]            Sets the maximum number of links per server (default: 10000)
--mnr:[n]            Sets the maximum number of retries (default: 2)
--tmo:[ms]           Sets the timeout time (default: 8000)
+-mnr:[n]            Sets the maximum number of HTTP request retries (default: 2)
+-tmo:[ms]           Sets the HTTP request timeout time (default: 8000)
+-tml:[time]         Sets the maximum scan time limit (default: no limit)
+    Examples: 1d, 3h, 2h30m, 50m
 -ver:[v]            Sets the HTTP Version (default: 1.1)
 -evids              Enables the IDS Evasion
 -evwaf              Enables the WAF Evasion
@@ -82,7 +84,7 @@ Other parameters:
 -nojs               Disables JavaScript emulation and execution
 -auser:[username]   Sets a username for server authentication
 -apass:[password]   Sets a password for server authentication
--atype:[type]       Sets the auth type; Basic, Form and Manual
+-atype:[type]       Sets the auth type; Basic, Bearer, Digest, Form and Manual
 
 -about              Displays information on the current version of Syhunt
 -help (or /?)       Displays this list
@@ -109,15 +111,45 @@ function printscanresult(hs)
   if hs.warnings ~= '' then
      cs.printred('Warnings: '..hs.warnings)
   end
-  if hasarg('-gr') == true then
-    generateexport(hs.sessionname, 'rout')
+  generateexport(hs)
+end
+
+function submitresults(argname, gen, repprefs)
+  if hasarg('-'..argname) == true then
+   local notifytracker = true
+   local hs = symini.hybrid:new()
+   hs:start()
+   gen.trackername = arg(argname,'')
+   local notifyonfailonly = hs:tracker_getvalue(gen.trackername, 'notifyonfailonly')
+   if notifyonfailonly == true and gen.passfail_result == true and hasarg('-pfcond') == true then
+     notifytracker = false
+   end
+   if notifytracker == true then     
+     local issue = hs:tracker_getissuetemplate(gen)  
+     issue.debug = hasarg('-dbg')
+    -- Ignore if a compatible report or export file for the specified tracker is
+    -- available. If not, generate compatible one
+     repprefs.skipfirst = true
+     repprefs.overwrite = false
+     repprefs.outfilename = nil
+     repprefs.outfilename2 = issue.attachfilename
+     print('Attachment read from: '..issue.attachfilename_source)
+     local gen = symini.genreport(repprefs)
+     -- Updates the attachment files (if any)
+     issue.attachfilename = gen.outfilename2
+     -- Finally, submits the results to the tracker
+     local res = hs:tracker_sendissue(issue) 
+       if res.success == true then
+         cs.printgreen('Scan results sent! '..res.errormsg)
+       else
+         cs.printred('Failed to send scan results! '..res.errormsg)
+       end
+      if issue.debug == true then
+       print(res.debuglog)
+     end
+   end
+   hs:release()
   end
-  if hasarg('-gx') == true then
-    generateexport(hs.sessionname, 'xout')
-    if hasarg('-xout2') == true then
-      generateexport(hs.sessionname, 'xout2')    
-    end
-  end   
 end
 
 function printpassfailresult(g)
@@ -135,47 +167,37 @@ function printpassfailresult(g)
 end
 
 -- Generates a scan report or export file
-function generateexport(sessionname, fnparam)
-  local isreport = (fnparam == 'rout')  
-  local outfilename = symini.info.outputdir..'Report_'..sessionname
-  if isreport == true then
+function generateexport(hs)
+  if hasarg('-nr') == false then
     print('Generating report...')
-    outfilename = outfilename..'.html'
-  else
-    print('Generating export...')    
-    outfilename = outfilename..'.xml'
   end
-  outfilename = arg(fnparam,outfilename) 
   local repprefs = {
-    outfilename = outfilename,
-    sessionname = sessionname,
+    outfilename  =  arg('rout',''),
+    outfilename2 =  arg('xout',''),
+    outfilename3 =  arg('xout2',''),  
+    sessionname = hs.sessionname,
     template = arg('rtpl','Standard'),
-    passfailcond = arg('pfcond','')
+    passfailcond = arg('pfcond',''),
+    skipfirst = hasarg('-nr'),
+    open = hasarg('-or')
   }
   local gen = symini.genreport(repprefs)
-  if gen.result == true then
-    print(gen.resultstr)  
-    printpassfailresult(gen)
-    if isreport == true then
-      handlereport(gen.outfilename)
+  if hasarg('-nr') == false then
+    if gen.result == true then
+      print(gen.resultstr)  
+      printpassfailresult(gen)
+    else
+      cs.printred(gen.resultstr)
     end
-  else
-    cs.printred(gen.resultstr)
   end
-end
-
--- Opens or emails report to user after being generated
-function handlereport(outfilename)
-    if hasarg('-or') then
-      ctk.file.exec(outfilename)
-    end
-    if hasarg('-er') then
-      symini.emailreport({
-       tracker=arg('etrk',''),
-       filename=outfilename,
-       subject=arg('esbj','Syhunt Hybrid Report')
-       })
-    end  
+  -- Submits results to the trackers (if any) if the pass/fail condition is met
+  submitresults('tk', gen, repprefs)
+  submitresults('tk2', gen, repprefs)
+  submitresults('tk3', gen, repprefs) 
+  -- etrk and si parameters are now deprecated and will be removed in future releases
+  -- -tk must be used instead       
+  submitresults('si', gen, repprefs)
+  submitresults('etrk', gen, repprefs)
 end
 
 function printvulndetails(v)
@@ -228,6 +250,7 @@ function startscan()
   
   -- Set the scanner preferences based on switches provided
   hs.debug = hasarg('-dbg')
+  hs:start()
   hs:prefs_set('syhunt.dynamic.emulation.mode',arg('emu','chrome'))
   hs:prefs_set('syhunt.dynamic.protocol.version','HTTP/'..arg('ver','1.1'))
   hs:prefs_set('syhunt.dynamic.evasion.evadeids',hasarg('-evids'))
@@ -246,7 +269,11 @@ function startscan()
     local n = tonumber(arg('tmo','8000'))
     hs:prefs_set('syhunt.dynamic.protocol.timeout.value',n)
   end
-  hs:start()
+  if hasarg('-tml') then
+    local n = arg('tml','')
+    hs:prefs_set('syhunt.dynamic.options.timelimit.enabled',true)
+    hs:prefs_set('syhunt.dynamic.options.timelimit.value',n)
+  end
   
   -- Set the scan target
   if hasarg('-nofris') then
